@@ -1,0 +1,12 @@
+//===--- {filename} ----------------------*- C++ -*-===//
+//
+// This source file is part of the June open source project
+//
+// Copyright (c) 2021 Jules Amalie and June project authors
+// Licensed under MIT License
+//
+//===---------------------------------------------------------------------===//
+//
+// This file defines the {name} {impl}.
+//
+//===---------------------------------------------------------------------===//

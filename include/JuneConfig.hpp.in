@@ -1,0 +1,8 @@
+#ifndef config_hpp
+#define config_hpp
+
+#define JUNE_BUILD_DATE @BUILD_DATE@
+#define JUNE_GIT_REVISION "@GIT_REVISION@"
+#define JUNE_VERSION_STRING "@JUNE_VERSION@"
+
+#endif

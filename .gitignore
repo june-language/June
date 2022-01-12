@@ -1,0 +1,50 @@
+# Editor/Compiler files #
+########################
+.vscode/
+.clangd/
+
+# Build files #
+###############
+testbin/
+bin/
+/lib/
+build/
+build-linux/
+build-win/
+build-osx/
+install-out/
+dockerbuild/
+buildfiles/
+CMakeFiles/
+doxygen/
+flag_cache
+book/book/
+include/Common/Config.hpp
+.cache/
+
+# Extra Data #
+#############
+tmp*
+/*.june
+*.zip
+
+# Packages #
+###########
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# OS generated files #
+######################
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
