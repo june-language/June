@@ -19,7 +19,7 @@ CMakeFiles/
 doxygen/
 flag_cache
 book/book/
-include/Common/Config.hpp
+include/JuneConfig.hpp
 .cache/
 
 # Extra Data #

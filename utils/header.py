@@ -19,17 +19,17 @@ def main():
 
     # Replace header templating with actual header
     h = header.replace(
-        '{filename}',
-        file.split('/')[-1]
+      '{filename}',
+      file.split('/')[-1]
     ).replace(
-        '{name}',
-        file.split('/')[-1].split('.')[0]
+      '{name}',
+      file.split('/')[-1].split('.')[0]
     ).replace(
-        '{impl}',
-        'interface' if
-        file.endswith('.hpp')
-        or file.endswith('.h')
-        else 'implementation'
+      '{impl}',
+      'interface' if
+      file.endswith('.hpp')
+      or file.endswith('.h')
+      else 'implementation'
     )
 
     with open(file, 'r') as f:
