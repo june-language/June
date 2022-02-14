@@ -176,7 +176,7 @@ file(GLOB_RECURSE INCS RELATIVE "${PROJECT_SOURCE_DIR}" "include/VM/*.hpp")
 file(GLOB_RECURSE SRCS RELATIVE "${PROJECT_SOURCE_DIR}" "src/VM/*.cpp")
 
 add_library(blossom-vm SHARED ${SRCS} ${INCS})
-target_link_libraries(junevm blossom-common ${CMAKE_DL_LIBS} ${MPFR_LIBRARIES} ${GMP_LIBRARY})
+target_link_libraries(junevm june-common)
 set_target_properties(junevm
     PROPERTIES
     OUTPUT_NAME junevm
