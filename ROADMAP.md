@@ -18,5 +18,9 @@ As the language grows, more items may be added.
 These ideas are going to be debated on as they may have larger implications due to language growth and available resources.
 
 - [ ] Package Manager
-- [ ] Rust re-write (debatable)
 
+## Non-goals
+
+These ideas are non-goals. I *might* do these but I probably won't.
+
+- [ ] Rust re-write (debatable)

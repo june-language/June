@@ -1,0 +1,10 @@
+export RED := \033[31m
+export GRN := \033[32m
+export YLW := \033[33m
+export BLU := \033[34m
+export MAG := \033[35m
+export CYN := \033[36m
+export WHT := \033[37m
+export BLK := $(WHT)
+# export BLK := \033[30;1m
+export RST :=	\033[0m

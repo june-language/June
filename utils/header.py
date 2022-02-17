@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
 import glob
+import re
 from os.path import realpath, exists
+
+def globr(regexp):
+  return glob.glob('src/' + regexp, recursive=True) + glob.glob('include/' + regexp, recursive=True)
 
 def main():
   script_dir = '/'.join(realpath(__file__).split('/')[:-1])
@@ -13,7 +17,12 @@ def main():
   
   header = open(resource_dir + '/HEADER.txt', 'r').read()
 
-  for file in (glob.glob('**/*.cpp', recursive=True) + glob.glob('**/*.hpp', recursive=True)):
+  # .c/.cpp -> C/C++ Source Files
+  # .h/.hpp -> C/C++ Header Files
+  # .h.in/.hpp.in -> C++ Header Template Files (For CMake)
+  files = globr('**/*.[ch]') + globr('**/*.[ch]pp') + globr('**/*.[ch]pp.in')
+
+  for file in files:
     if 'build/' in file:
       continue
 
@@ -29,6 +38,8 @@ def main():
       'interface' if
       file.endswith('.hpp')
       or file.endswith('.h')
+      or file.endswith('.hpp.in')
+      or file.endswith('.h.in')
       else 'implementation'
     )
 
