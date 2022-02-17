@@ -98,9 +98,9 @@ int main() {
   }
   // NOTE: This caused a segfault (but not during program run but after which is
   // odd).
-  deleteMap(context->dynHandleMap);
-  free(context->commandMap);
-  free(context);
+  // deleteMap(context->dynHandleMap);
+  // free(context->commandMap);
+  // free(context);
 
   return 0;
 }
