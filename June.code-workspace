@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "June"
+		}, {
+			"path": "utils/crane",
+			"name": "Crane"
+		}
+	],
+	"settings": {}
+}

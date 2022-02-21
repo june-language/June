@@ -13,6 +13,7 @@
 
 typedef struct _CraneContributedCommands {
   int contributedCount;
+  int contributedSizeCap;
   CraneCommandEntry **contributedCommands;
 } CraneContributedCommands;
 
@@ -22,7 +23,8 @@ inline static CraneContributedCommands *initContributedCommands() {
   CraneContributedCommands *contributedCommands =
       calloc(1, sizeof(CraneContributedCommands));
 
-  contributedCommands->contributedCount = kCraneDefaultContributionSize;
+  contributedCommands->contributedCount = 0;
+  contributedCommands->contributedSizeCap = kCraneDefaultContributionSize;
   contributedCommands->contributedCommands =
       calloc(kCraneDefaultContributionSize, sizeof(CraneCommandEntry *));
 
@@ -31,17 +33,20 @@ inline static CraneContributedCommands *initContributedCommands() {
 
 inline static void contributeCommand(CraneContributedCommands *contributions,
                                      char *name, CraneCommandHandler handler,
-                                     int argumentCount) {
+                                     int argumentCount, bool isVariadic) {
   CraneCommandEntry *entry = calloc(1, sizeof(CraneCommandEntry));
 
   entry->name = strdup(name);
   entry->handler = handler;
   entry->argumentCount = argumentCount;
+  entry->isVariadic = isVariadic;
 
-  if (contributions->contributedCount > kCraneDefaultContributionSize) {
+  if (contributions->contributedCount > contributions->contributedSizeCap) {
+    printf("Allocating after %d spaces\n", contributions->contributedCount);
+    contributions->contributedSizeCap *= 2;
     contributions->contributedCommands = realloc(
         contributions->contributedCommands,
-        (++contributions->contributedCount) * sizeof(CraneCommandEntry *));
+        (contributions->contributedSizeCap) * sizeof(CraneCommandEntry *));
   }
 
   contributions->contributedCommands[contributions->contributedCount++] = entry;

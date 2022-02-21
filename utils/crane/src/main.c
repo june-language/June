@@ -18,22 +18,31 @@
 #include "prompt.h"
 #include <dlfcn.h>
 #include <unistd.h>
+#include <termios.h>
 
 int Crane_load(CraneCommand *command, CraneContext *context) {
-  if (command->argumentCount == 0) {
-    printf("You must specify a file to load.\n");
-    return 1;
+  char *fileToLoad = command->arguments[0];
+  
+  if (StringEquals(fileToLoad, "Core")) {
+    fileToLoad = "extern/core.so";
   }
 
-  char *fileToLoad = command->arguments[0];
   if (access(fileToLoad, R_OK) != 0) {
     printf("The file '%s' doesn't exist.\n", fileToLoad);
     return 1;
   }
 
+  if (findEntry(context->dynHandleMap, fileToLoad) != NULL) {
+    printf("The module '%s' has already been loaded!\n", command->arguments[0]);
+
+    // Despite this being an "error", the file was apparently loaded
+    // successfully so there is no need to emit and error.
+    return 0;
+  }
+
   void *handle = dlopen(fileToLoad, RTLD_NOW | RTLD_GLOBAL);
   if (handle == NULL) {
-    printf("Failed to open the library.\n%s\n", dlerror());
+    printf("Failed to open the module.\n%s\n", dlerror());
     dlclose(handle);
     return 1;
   }
@@ -54,9 +63,40 @@ int Crane_load(CraneCommand *command, CraneContext *context) {
   return 0;
 }
 
-int main() {
-  CraneContext *context = newContext();
-  insertCommand(context->commandMap, createCommand("load", Crane_load, 1));
+
+int main(int argc, char **argv) {
+  CraneContext *context;
+  bool noCore = false;
+
+  context = newContext();
+  insertCommand(context->commandMap, createCommand("load", Crane_load, 1, false));
+  
+  for (int i = 1; i < argc; i++) {
+    if (StringEquals(argv[i], "--no-core")) {
+      noCore = true;
+    }
+  }
+
+  if (!noCore) {
+    CraneCommandEntry *loadCommand = findCommand(context->commandMap, "load");
+    if (loadCommand == NULL) {
+      printf("Failed to initialise Crane. Could not load Core library.\n");
+      return 1;
+    }
+
+    CraneCommand *coreLoad = calloc(1, sizeof(CraneCommand));
+
+    coreLoad->arguments = calloc(1, sizeof(char *));
+    coreLoad->arguments[0] = "extern/core.so";
+
+    int result = loadCommand->handler(coreLoad, context);
+    if (result != 0) {
+      printf("Failed to initialise Crane. Core library not found in 'extern/core.so'\n");
+      return 1;
+    }
+
+    free(coreLoad);
+  }
 
   while (true) {
     CraneCommand *command = inputCommand(context);
@@ -75,14 +115,24 @@ int main() {
     CraneCommandEntry *foundCommand =
         findCommand(context->commandMap, command->name);
     if (foundCommand != NULL) {
-      context->failedLastCommand = foundCommand->handler(command, context);
+      if (foundCommand->argumentCount != command->argumentCount && !foundCommand->isVariadic) {
+        printf("The '%s' command requires %d argument%s\n", foundCommand->name, foundCommand->argumentCount, foundCommand->argumentCount == 1 ? "" : "s");
+      } else {
+        context->failedLastCommand = foundCommand->handler(command, context);
+      }
     } else {
       context->failedLastCommand = true;
-      printf("No such command exists.\n");
+      printf("No such command exists.");
+
+      if (noCore) {
+        printf(" Did you forget to load Core?");
+      }
+      printf("\n");
     }
     printf("\n");
 
     free(command);
+    command = NULL;
   }
 
   printf("Goodbye!\n");

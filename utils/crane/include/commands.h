@@ -13,10 +13,23 @@ typedef struct _CraneContext CraneContext;
 
 typedef int (*CraneCommandHandler)(CraneCommand *, CraneContext *);
 
+typedef enum {
+  CraneArgumentTypeBoolean,
+  CraneArgumentTypeFile,
+  CraneArgumentTypeString,
+  CraneArgumentTypeNumber
+} CraneCommandArgumentType;
+
+typedef struct {
+  char *name;
+  CraneCommandArgumentType type;
+} CraneCommandArgument;
+
 typedef struct _CraneCommandEntry {
   char *name;
-  int argumentCount;
   CraneCommandHandler handler;
+  int argumentCount;
+  bool isVariadic;
 } CraneCommandEntry;
 
 typedef struct _CraneCommandMap {
@@ -27,7 +40,7 @@ typedef struct _CraneCommandMap {
 
 // Sets the argument count to 0 by default
 CraneCommandEntry *createCommand(char *name, CraneCommandHandler handler,
-                                 int argumentCount);
+                                 int argumentCount, bool isVariadic);
 
 CraneCommandMap *createCommandMap();
 CraneCommandEntry *findCommand(CraneCommandMap *map, char *name);

@@ -10,6 +10,7 @@
 
 typedef struct _CraneContext {
   bool failedLastCommand;
+  char *openedFilePath;
   FILE *openedFile;
   CraneMap *dynHandleMap;
   CraneCommandMap *commandMap;

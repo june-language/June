@@ -1,39 +1,41 @@
 #include "prompt.h"
 #include "context.h"
+#include <ctype.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
-char *_inputCommand(CraneContext *context) {
-  char *buf = calloc(1, kCommandBufSize);
-  int i = 0;
-  int c;
-
+void generatePrompt(CraneContext *context, char **buf) {
   /**
    * The expected prompt should be clean and a bit colorful:
    *
-   * {cyan}crane {magenta}(openFile)?{white if didNotFail else red}>{reset}
+   * {cyan}crane {magenta}(openFile)? {white if didNotFail else red}>{reset}
    */
-  printf("\033[36mcrane ");
-  // TODO: add file context support
-  // if (context->openedFile != NULL) {
-  //   // printf("(%s) ", context->openedFile->)
-  // }
-  if (context->failedLastCommand) {
-    printf("\033[31m> \033[0m");
+
+  int lengthOffset = 3; // '(' + ')' + ' '
+  if (context->openedFile != NULL) {
+    lengthOffset += strlen(context->openedFilePath);
   } else {
-    printf("\033[37m> \033[0m");
+    lengthOffset = 0;
   }
 
-  while (true) {
-    if ((c = getchar()) == 0)
-      break;
+  *buf = calloc(strlen(kColorCyan) * 3 + strlen("crane >") + lengthOffset, sizeof(char));
+  
+  // {cyan}crane
+  strcat(*buf, kColorCyan);
+  strcat(*buf, "crane ");
 
-    if (c == '\r' || c == '\n') {
-      return buf;
-    }
-
-    buf[i++] = c;
+  // {magenta}(openFile)?
+  if (context->openedFile != NULL) {
+    strcat(*buf, kColorMagenta);
+    strcat(*buf, "(");
+    strcat(*buf, context->openedFilePath);
+    strcat(*buf, ") ");
   }
 
-  return NULL;
+  // {white if didNotFail else red}>{reset}
+  strcat(*buf, context->failedLastCommand ? kColorRed : kColorWhite);
+  strcat(*buf, "> ");
+  strcat(*buf, kColorReset);
 }
 
 CraneCommand *inputCommand(CraneContext *context) {
@@ -43,11 +45,16 @@ CraneCommand *inputCommand(CraneContext *context) {
   int argumentCount = 0;
   command->arguments = calloc(argumentLimit, sizeof(char *));
 
-  char *comBuf = _inputCommand(context);
+  char *promptBuf = NULL;
+  generatePrompt(context, &promptBuf);
+
+  char *comBuf = readline(promptBuf);
 
   if (!comBuf) {
     return NULL;
   }
+
+  add_history(comBuf);
 
   command->name = strtok(comBuf, " \t");
   char *argBuf = NULL;

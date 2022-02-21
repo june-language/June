@@ -2,7 +2,7 @@ include ../colors.mk
 
 CXX := clang
 CFLAGS := -Wall -Iinclude/ -g
-LDFLAGS := -lm -ldl
+LDFLAGS := -lm -ldl -lreadline
 
 SOURCES := $(shell find src -name '*.c')
 OBJ := $(patsubst src/%.c,build/%.o,$(SOURCES))
