@@ -28,8 +28,9 @@ typedef struct {
 typedef struct _CraneCommandEntry {
   char *name;
   CraneCommandHandler handler;
-  int argumentCount;
   bool isVariadic;
+  int argumentCount;
+  CraneCommandArgument **arguments;
 } CraneCommandEntry;
 
 typedef struct _CraneCommandMap {
@@ -39,8 +40,9 @@ typedef struct _CraneCommandMap {
 } CraneCommandMap;
 
 // Sets the argument count to 0 by default
-CraneCommandEntry *createCommand(char *name, CraneCommandHandler handler,
-                                 int argumentCount, bool isVariadic);
+CraneCommandEntry *createCommand(char *name, CraneCommandHandler handler, bool isVariadic);
+CraneCommandArgument *createCommandArgument(char *name, CraneCommandArgumentType type);
+void addCommandArgument(CraneCommandEntry *entry, CraneCommandArgument *argument);
 
 CraneCommandMap *createCommandMap();
 CraneCommandEntry *findCommand(CraneCommandMap *map, char *name);

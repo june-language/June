@@ -11,6 +11,9 @@
   int CraneContributed_##commandName(CraneCommand *command,                    \
                                      CraneContext *context)
 
+#define contributeCommand(contributions, name, isVariadic)                     \
+  _contributeCommand(contributions, #name, CraneContributed_##name, isVariadic)
+
 typedef struct _CraneContributedCommands {
   int contributedCount;
   int contributedSizeCap;
@@ -31,18 +34,18 @@ inline static CraneContributedCommands *initContributedCommands() {
   return contributedCommands;
 }
 
-inline static void contributeCommand(CraneContributedCommands *contributions,
-                                     char *name, CraneCommandHandler handler,
-                                     int argumentCount, bool isVariadic) {
+inline static void _contributeCommand(CraneContributedCommands *contributions,
+                                      char *name, CraneCommandHandler handler,
+                                      bool isVariadic) {
   CraneCommandEntry *entry = calloc(1, sizeof(CraneCommandEntry));
 
   entry->name = strdup(name);
   entry->handler = handler;
-  entry->argumentCount = argumentCount;
+  entry->argumentCount = 0;
+  entry->arguments = NULL;
   entry->isVariadic = isVariadic;
 
   if (contributions->contributedCount > contributions->contributedSizeCap) {
-    printf("Allocating after %d spaces\n", contributions->contributedCount);
     contributions->contributedSizeCap *= 2;
     contributions->contributedCommands = realloc(
         contributions->contributedCommands,
@@ -50,6 +53,29 @@ inline static void contributeCommand(CraneContributedCommands *contributions,
   }
 
   contributions->contributedCommands[contributions->contributedCount++] = entry;
+}
+
+inline static void
+addContributedArgument(CraneContributedCommands *contributions, char *name,
+                       CraneCommandArgumentType type) {
+  CraneCommandEntry *entry =
+      contributions->contributedCommands[contributions->contributedCount - 1];
+
+  if (entry->arguments == NULL) {
+    entry->argumentCount = 1;
+    entry->arguments = calloc(1, sizeof(CraneCommandArgument *));
+  } else {
+    entry->argumentCount++;
+    entry->arguments =
+        realloc(entry->arguments,
+                sizeof(CraneCommandArgument *) * entry->argumentCount);
+  }
+
+  entry->arguments[entry->argumentCount - 1] =
+      calloc(1, sizeof(CraneCommandArgument));
+  ;
+  entry->arguments[entry->argumentCount - 1]->name = name;
+  entry->arguments[entry->argumentCount - 1]->type = type;
 }
 
 #endif

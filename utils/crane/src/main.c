@@ -19,6 +19,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <termios.h>
+#include <readline/readline.h>
 
 int Crane_load(CraneCommand *command, CraneContext *context) {
   char *fileToLoad = command->arguments[0];
@@ -63,13 +64,80 @@ int Crane_load(CraneCommand *command, CraneContext *context) {
   return 0;
 }
 
+int Crane_QMark(CraneCommand *command, CraneContext *context) {
+  printf("%d\n", context->lastCommandResult);
+
+  return 0;
+}
+
+int Crane_help(CraneCommand *command, CraneContext *context) {
+  CraneCommandEntry *entry;
+  if ((entry = findCommand(context->commandMap, command->arguments[0])) != NULL) {
+    printf("%s - %d arguments\n\n", command->arguments[0], command->argumentCount);
+    for (int i = 0; i < command->argumentCount; i++) {
+      CraneCommandArgument *argument = entry->arguments[i];
+      printf("%s - ", argument->name);
+      
+      switch (argument->type) {
+      case CraneArgumentTypeBoolean:
+        printf("Boolean [true/false]\n");
+        break;
+      case CraneArgumentTypeFile:
+        printf("File\n");
+        break;
+      case CraneArgumentTypeNumber:
+        printf("Number\n");
+        break;
+      case CraneArgumentTypeString:
+        printf("String\n");
+        break;
+      }
+    }
+    printf("\n");
+  } else {
+    printf("Command '%s' does not exist.\n", command->arguments[0]);
+    return 1;
+  }
+
+  return 0;
+}
+
+static CraneContext *context;
+
+char **completionEngine(const char *text, int start, int end) {
+  
+
+  CraneCommand *parsedCommand = parseCommand(text);
+  CraneCommandEntry *command = NULL;
+  if ((command = findCommand(context->commandMap, parsedCommand->name)) != NULL) {
+    if (command->argumentCount > parsedCommand->argumentCount) {
+      // TODO: Implement Argument Completion
+      return NULL;
+    }
+  } else {
+    // TODO: Implement Levenshtein Distance algorithm
+  }
+
+  rl_attempted_completion_over = 1;
+  return NULL;
+}
 
 int main(int argc, char **argv) {
-  CraneContext *context;
-  bool noCore = false;
+  rl_attempted_completion_function = completionEngine;
 
+  bool noCore = false;
   context = newContext();
-  insertCommand(context->commandMap, createCommand("load", Crane_load, 1, false));
+  
+  CraneCommandEntry *loadCommand = createCommand("load", Crane_load, false);
+  addCommandArgument(loadCommand, createCommandArgument("module", CraneArgumentTypeFile));
+  insertCommand(context->commandMap, loadCommand);
+  
+  CraneCommandEntry *helpCommand = createCommand("help", Crane_help, false);
+  addCommandArgument(helpCommand, createCommandArgument("command", CraneArgumentTypeString));
+  insertCommand(context->commandMap, helpCommand);
+  
+  insertCommand(context->commandMap, createCommand("?", Crane_QMark, false));
+
   
   for (int i = 1; i < argc; i++) {
     if (StringEquals(argv[i], "--no-core")) {
@@ -118,10 +186,10 @@ int main(int argc, char **argv) {
       if (foundCommand->argumentCount != command->argumentCount && !foundCommand->isVariadic) {
         printf("The '%s' command requires %d argument%s\n", foundCommand->name, foundCommand->argumentCount, foundCommand->argumentCount == 1 ? "" : "s");
       } else {
-        context->failedLastCommand = foundCommand->handler(command, context);
+        context->lastCommandResult = foundCommand->handler(command, context);
       }
     } else {
-      context->failedLastCommand = true;
+      context->lastCommandResult = 1;
       printf("No such command exists.");
 
       if (noCore) {

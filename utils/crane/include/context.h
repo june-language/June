@@ -9,7 +9,7 @@
 #include <string.h>
 
 typedef struct _CraneContext {
-  bool failedLastCommand;
+  int lastCommandResult;
   char *openedFilePath;
   FILE *openedFile;
   CraneMap *dynHandleMap;

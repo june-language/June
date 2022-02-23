@@ -1,8 +1,8 @@
 #include "prompt.h"
 #include "context.h"
 #include <ctype.h>
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 
 void generatePrompt(CraneContext *context, char **buf) {
   /**
@@ -18,8 +18,13 @@ void generatePrompt(CraneContext *context, char **buf) {
     lengthOffset = 0;
   }
 
-  *buf = calloc(strlen(kColorCyan) * 3 + strlen("crane >") + lengthOffset, sizeof(char));
-  
+  *buf = calloc(strlen("\33[2K\r") + strlen(kColorCyan) * 3 +
+                    strlen("crane >") + lengthOffset,
+                sizeof(char));
+
+  // \33[2K\r
+  strcat(*buf, "\33[2K\r");
+
   // {cyan}crane
   strcat(*buf, kColorCyan);
   strcat(*buf, "crane ");
@@ -33,30 +38,19 @@ void generatePrompt(CraneContext *context, char **buf) {
   }
 
   // {white if didNotFail else red}>{reset}
-  strcat(*buf, context->failedLastCommand ? kColorRed : kColorWhite);
+  strcat(*buf, context->lastCommandResult != 0 ? kColorRed : kColorWhite);
   strcat(*buf, "> ");
   strcat(*buf, kColorReset);
 }
 
-CraneCommand *inputCommand(CraneContext *context) {
+CraneCommand *parseCommand(char *buffer) {
   CraneCommand *command = calloc(1, sizeof(CraneCommand));
 
   int argumentLimit = 1;
   int argumentCount = 0;
   command->arguments = calloc(argumentLimit, sizeof(char *));
 
-  char *promptBuf = NULL;
-  generatePrompt(context, &promptBuf);
-
-  char *comBuf = readline(promptBuf);
-
-  if (!comBuf) {
-    return NULL;
-  }
-
-  add_history(comBuf);
-
-  command->name = strtok(comBuf, " \t");
+  command->name = strtok(buffer, " \t");
   char *argBuf = NULL;
   while ((argBuf = strtok(NULL, " \t")) != NULL) {
     if (argumentCount == argumentLimit) {
@@ -71,6 +65,19 @@ CraneCommand *inputCommand(CraneContext *context) {
   }
 
   command->argumentCount = argumentCount;
+}
 
-  return command;
+CraneCommand *inputCommand(CraneContext *context) {
+  char *promptBuffer = NULL;
+  generatePrompt(context, &promptBuffer);
+
+  char *commandBuffer = readline(promptBuffer);
+
+  if (!commandBuffer) {
+    return NULL;
+  }
+
+  add_history(commandBuffer);
+
+  return parseCommand(commandBuffer);
 }

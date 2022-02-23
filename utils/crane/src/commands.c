@@ -15,15 +15,41 @@ static int Crane_MapHash(const char *s, const int buckets) {
 }
 
 CraneCommandEntry *createCommand(char *name, CraneCommandHandler handler,
-                                 int argumentCount, bool isVariadic) {
+                                 bool isVariadic) {
   CraneCommandEntry *command = calloc(1, sizeof(CraneCommandEntry));
 
   command->name = strdup(name);
   command->handler = handler;
-  command->argumentCount = argumentCount;
+  command->argumentCount = 0;
+  command->arguments = NULL;
   command->isVariadic = isVariadic;
 
   return command;
+}
+
+CraneCommandArgument *createCommandArgument(char *name,
+                                            CraneCommandArgumentType type) {
+  CraneCommandArgument *argument = calloc(1, sizeof(CraneCommandArgument));
+
+  argument->name = strdup(name);
+  argument->type = type;
+
+  return argument;
+}
+
+void addCommandArgument(CraneCommandEntry *entry,
+                        CraneCommandArgument *argument) {
+  if (entry->arguments == NULL) {
+    entry->argumentCount = 1;
+    entry->arguments = calloc(1, sizeof(CraneCommandArgument *));
+  } else {
+    entry->argumentCount++;
+    entry->arguments =
+        realloc(entry->arguments,
+                sizeof(CraneCommandArgument *) * entry->argumentCount);
+  }
+
+  entry->arguments[entry->argumentCount - 1] = argument;
 }
 
 CraneCommandMap *createCommandMap() {
