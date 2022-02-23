@@ -114,12 +114,13 @@ contributableCommand(dump) {
           }
         }
         for (int j = 0; j < kHexDumpWidth; j++) {
-          if (tempBuf[j] == '\0') break;
+          if (tempBuf[j] == '\0' && (j + 1) >= kHexDumpWidth) break;
 
           if (iscntrl(tempBuf[j])) {
             printf(".");
           } else {
             printf("%c", tempBuf[j]);
+            fflush(stdout);
           }
           tempBuf[j] = '\0';
         }
@@ -154,6 +155,15 @@ contributableCommand(rewind) {
   return 0;
 }
 
+contributableCommand(write) {
+  if (context->openedFile == NULL) {
+    printf("There is no file currently opened.\n");
+    return 1;
+  }
+
+  return 0;
+}
+
 CraneContributedCommands *Crane_contributedCommands() {
   CraneContributedCommands *contributions = initContributedCommands();
 
@@ -164,6 +174,9 @@ CraneContributedCommands *Crane_contributedCommands() {
   contributeCommand(contributions, rewind, false);
 
   contributeCommand(contributions, dump, false);
+  addContributedArgument(contributions, "format", CraneArgumentTypeString);
+
+  contributeCommand(contributions, write, true);
   addContributedArgument(contributions, "format", CraneArgumentTypeString);
 
 

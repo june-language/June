@@ -27,9 +27,11 @@ typedef struct {
 
 typedef struct _CraneCommandEntry {
   char *name;
-  CraneCommandHandler handler;
+  char *description;
   bool isVariadic;
+  bool requiresOpenFile;
   int argumentCount;
+  CraneCommandHandler handler;
   CraneCommandArgument **arguments;
 } CraneCommandEntry;
 

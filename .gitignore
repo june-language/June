@@ -1,7 +1,11 @@
 # Editor/Compiler files #
-########################
+#########################
 .vscode/
 .clangd/
+
+# VSCode Debug Config #
+#######################
+!.vscode/launch.json
 
 # Build files #
 ###############
@@ -23,13 +27,13 @@ include/JuneConfig.hpp
 .cache/
 
 # Extra Data #
-#############
+##############
 tmp*
 /*.june
 *.zip
 
 # Packages #
-###########
+############
 *.7z
 *.dmg
 *.gz

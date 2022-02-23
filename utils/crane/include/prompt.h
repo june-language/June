@@ -26,7 +26,7 @@ typedef struct _CraneCommand {
   int argumentCount;
 } CraneCommand;
 
-CraneCommand *parseCommand(char *buffer);
+CraneCommand *parseCommand(const char *buffer);
 CraneCommand *inputCommand(CraneContext *context);
 
 #endif

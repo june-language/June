@@ -43,14 +43,14 @@ void generatePrompt(CraneContext *context, char **buf) {
   strcat(*buf, kColorReset);
 }
 
-CraneCommand *parseCommand(char *buffer) {
+CraneCommand *parseCommand(const char *buffer) {
   CraneCommand *command = calloc(1, sizeof(CraneCommand));
 
   int argumentLimit = 1;
   int argumentCount = 0;
   command->arguments = calloc(argumentLimit, sizeof(char *));
 
-  command->name = strtok(buffer, " \t");
+  command->name = strtok((char*)buffer, " \t");
   char *argBuf = NULL;
   while ((argBuf = strtok(NULL, " \t")) != NULL) {
     if (argumentCount == argumentLimit) {
@@ -65,6 +65,8 @@ CraneCommand *parseCommand(char *buffer) {
   }
 
   command->argumentCount = argumentCount;
+
+  return command;
 }
 
 CraneCommand *inputCommand(CraneContext *context) {
