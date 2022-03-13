@@ -6,6 +6,7 @@ CraneContext *newContext() {
   ctx->openedFile = NULL;
   ctx->openedFilePath = NULL;
   ctx->lastCommandResult = 0;
+  ctx->fileMap = createMap();
   ctx->dynHandleMap = createMap();
   ctx->commandMap = createCommandMap();
 

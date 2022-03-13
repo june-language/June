@@ -3,27 +3,7 @@
 
 contributableCommand(open) {
   if (context->openedFile != NULL) {
-    printf("There is already a file open! This will close the current file\n"
-           "Are you sure? [y/n] ");
-
-    int c;
-    while ((c = getchar()) != '\n') {
-      if (c == 'y' || c == 'Y') {
-        if (fclose(context->openedFile) != 0) {
-          perror("Failed to close file");
-          return 1;
-        }
-        context->openedFile = NULL;
-        context->openedFilePath = "";
-        break;
-      } else {
-        printf("'%s' was not opened.", command->arguments[0]);
-        return 0;
-      }
-    }
-    // getchar() reads newline as well so we need to consume that
-    // before it gets consumed in prompt.c
-    getchar();
+    context->openedFile = NULL;
   }
 
   FILE *presaveOpen = fopen(command->arguments[0], "rb+");
@@ -32,25 +12,77 @@ contributableCommand(open) {
     return 1;
   }
 
-  context->openedFile = presaveOpen;
-  context->openedFilePath = command->arguments[0];
+  context->openedFile->handle = presaveOpen;
+  context->openedFile->filePath = command->arguments[0];
 
   return 0;
 }
 
+#define HashPrime 87178291199UL
+
+static int Crane_MapHash(const char *s, const int buckets) {
+  long hash = 0;
+  const int stringLength = strlen(s);
+  for (int i = 0; i < stringLength; i++) {
+    hash += (long)pow(HashPrime, stringLength - (i + 1)) * s[i];
+    hash = hash % buckets;
+  }
+
+  return (int)hash;
+}
+
+CraneMapEntry *contribFindEntry(CraneMap *map, char *name) {
+  int entryHash = Crane_MapHash(name, map->size);
+
+  int i = 0;
+  while (true) {
+    if ((entryHash + i) >= map->size)
+      break;
+
+    CraneMapEntry *entry = map->entries[entryHash + i];
+
+    if (entry != NULL) {
+      if (strcmp(entry->name, name) == 0) {
+        return entry;
+      }
+    }
+    i++;
+  }
+
+  return NULL;
+}
+
 contributableCommand(close) {
-  if (context->openedFile == NULL) {
+  if (context->openedFile == NULL && command->argumentCount == 0) {
     printf("There is no file currently opened.\n");
     return 1;
   }
 
-  int res = fclose(context->openedFile);
-  if (res != 0) {
-    perror("Failed to close file");
-    return 1;
+  if (command->argumentCount == 0) {
+    int res = fclose(context->openedFile->handle);
+    if (res != 0) {
+      perror("Failed to close file");
+      return 1;
+    }
+    free(context->openedFile);
+    context->openedFile = NULL;
+  } else {
+    char *alias = command->arguments[0];
+    
+    CraneOpenFile *entry = (CraneOpenFile*)contribFindEntry(context->fileMap, alias);
+    if (!entry) {
+      printf("No such file with the alias '%s' exists.\n", alias);
+      return 1;
+    }
+
+    int res = fclose(entry->handle);
+    if (res != 0) {
+      perror("Failed to close file");
+      return 1;
+    }
+
+    printf("Closed %s", alias);
   }
-  context->openedFile = NULL;
-  context->openedFilePath = "";
 
   return 0;
 }
@@ -59,18 +91,13 @@ contributableCommand(close) {
 #define kHexDumpWidth 6
 
 contributableCommand(dump) {
-  if (context->openedFile == NULL) {
-    printf("There is no file currently opened.\n");
-    return 1;
-  }
-
   char *format = command->arguments[0];
 
   if (strcmp(format, "hex") == 0) {
     char buf[kReadBufferSize];
     size_t bytesRead;
 
-    while ((bytesRead = fread(buf, 1, kReadBufferSize, context->openedFile)) != 0) {
+    while ((bytesRead = fread(buf, 1, kReadBufferSize, context->openedFile->handle)) != 0) {
       int i = 0;
       
       char tempBuf[kReadBufferSize];
@@ -129,9 +156,8 @@ contributableCommand(dump) {
 
     printf("\n");
 
-    if (fseek(context->openedFile, 0, SEEK_SET) != 0) {
+    if (fseek(context->openedFile->handle, 0, SEEK_SET) != 0) {
       perror("Failed to reset file pointer");
-      printf("Use `rewind` to attempt a reset of the file pointer.\n");
       return 1;
     }
     return 0;
@@ -139,20 +165,6 @@ contributableCommand(dump) {
     printf("Unknown format\n");
     return 1;
   }
-}
-
-contributableCommand(rewind) {
-  if (context->openedFile == NULL) {
-    printf("There is no file currently opened.\n");
-    return 1;
-  }
-
-  if (fseek(context->openedFile, 0, SEEK_SET) != 0) {
-    perror("Failed to reset file pointer");
-    return 1;
-  }
-
-  return 0;
 }
 
 contributableCommand(write) {
@@ -168,17 +180,22 @@ CraneContributedCommands *Crane_contributedCommands() {
   CraneContributedCommands *contributions = initContributedCommands();
 
   contributeCommand(contributions, open, false);
-  addContributedArgument(contributions, "file", CraneArgumentTypeFile);
+  setContributionDescription(contributions, "Opens a file and automatically selects (if noSelect is not set to true)");
+  addContributedArgument(contributions, "fileToOpen", CraneArgumentTypeFile, false);
+  addContributedArgument(contributions, "alias", CraneArgumentTypeString, false);
+  addContributedArgument(contributions, "noSelect", CraneArgumentTypeBoolean, true);
 
   contributeCommand(contributions, close, false);
-  contributeCommand(contributions, rewind, false);
+  setContributionDescription(contributions, "Closes a file given an alias. Otherwise, it closes the currently open file");
+  addContributedArgument(contributions, "alias", CraneArgumentTypeString, true);
 
   contributeCommand(contributions, dump, false);
-  addContributedArgument(contributions, "format", CraneArgumentTypeString);
+  setContributionDescription(contributions, "Dumps the contents of a file as a set format");
+  addContributedArgument(contributions, "format", CraneArgumentTypeString, false);
 
   contributeCommand(contributions, write, true);
-  addContributedArgument(contributions, "format", CraneArgumentTypeString);
-
+  setContributionDescription(contributions, "Writes some data to a file with a given format");
+  addContributedArgument(contributions, "format", CraneArgumentTypeString, false);
 
   return contributions;
 }

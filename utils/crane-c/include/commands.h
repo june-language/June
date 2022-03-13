@@ -22,6 +22,7 @@ typedef enum {
 
 typedef struct {
   char *name;
+  bool isOptional;
   CraneCommandArgumentType type;
 } CraneCommandArgument;
 
@@ -30,8 +31,10 @@ typedef struct _CraneCommandEntry {
   char *description;
   bool isVariadic;
   bool requiresOpenFile;
+  bool shouldOverride;
   int argumentCount;
   CraneCommandHandler handler;
+  struct _CraneCommandEntry *overridenEntry;
   CraneCommandArgument **arguments;
 } CraneCommandEntry;
 
@@ -43,12 +46,16 @@ typedef struct _CraneCommandMap {
 
 // Sets the argument count to 0 by default
 CraneCommandEntry *createCommand(char *name, CraneCommandHandler handler, bool isVariadic);
-CraneCommandArgument *createCommandArgument(char *name, CraneCommandArgumentType type);
+void setCommandDescription(CraneCommandEntry *entry, char *description);
+void setCommandRequiresOpenFile(CraneCommandEntry *entry, bool requiresOpenFile);
+
+CraneCommandArgument *createCommandArgument(char *name, CraneCommandArgumentType type, bool isOptional);
 void addCommandArgument(CraneCommandEntry *entry, CraneCommandArgument *argument);
 
 CraneCommandMap *createCommandMap();
 CraneCommandEntry *findCommand(CraneCommandMap *map, char *name);
 bool insertCommand(CraneCommandMap *map, CraneCommandEntry *command);
+CraneCommandEntry **aggregateCommands(CraneCommandMap *map);
 void deleteCommandMap(CraneCommandMap *map);
 
 #endif

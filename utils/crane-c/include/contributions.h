@@ -56,8 +56,22 @@ inline static void _contributeCommand(CraneContributedCommands *contributions,
 }
 
 inline static void
+setContributionDescription(CraneContributedCommands *contributions,
+                           char *description) {
+  contributions->contributedCommands[contributions->contributedCount - 1]
+      ->description = description;
+}
+
+inline static void
+setContributionRequiresOpenFile(CraneContributedCommands *contributions,
+                                bool requiresOpenFile) {
+  contributions->contributedCommands[contributions->contributedCount - 1]
+      ->requiresOpenFile = requiresOpenFile;
+}
+
+inline static void
 addContributedArgument(CraneContributedCommands *contributions, char *name,
-                       CraneCommandArgumentType type) {
+                       CraneCommandArgumentType type, bool isOptional) {
   CraneCommandEntry *entry =
       contributions->contributedCommands[contributions->contributedCount - 1];
 
@@ -76,6 +90,7 @@ addContributedArgument(CraneContributedCommands *contributions, char *name,
   ;
   entry->arguments[entry->argumentCount - 1]->name = name;
   entry->arguments[entry->argumentCount - 1]->type = type;
+  entry->arguments[entry->argumentCount - 1]->isOptional = isOptional;
 }
 
 #endif

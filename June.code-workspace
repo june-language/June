@@ -8,5 +8,15 @@
 			"name": "Crane"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"*.h": "c",
+			"Pipenv": "toml",
+			"DragonMake": "yaml",
+			"*.plist": "xml",
+			"postinst": "shellscript",
+			"build.zen": "yaml",
+			"locale": "c"
+		}
+	}
 }

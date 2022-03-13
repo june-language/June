@@ -16,7 +16,6 @@ typedef struct _CraneMapEntry {
  * this is a general purpose map for arbitrary
  * `void*` castable
  */
-
 typedef struct _CraneMap {
   int size;
   int count;

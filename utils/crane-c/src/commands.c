@@ -19,20 +19,34 @@ CraneCommandEntry *createCommand(char *name, CraneCommandHandler handler,
   CraneCommandEntry *command = calloc(1, sizeof(CraneCommandEntry));
 
   command->name = strdup(name);
-  command->handler = handler;
-  command->argumentCount = 0;
-  command->arguments = NULL;
+  command->description = NULL;
   command->isVariadic = isVariadic;
+  command->requiresOpenFile = false;
+  command->shouldOverride = false;
+  command->argumentCount = 0;
+  command->handler = handler;
+  command->overridenEntry = NULL;
+  command->arguments = NULL;
 
   return command;
 }
 
+void setCommandDescription(CraneCommandEntry *entry, char *description) {
+  entry->description = description;
+}
+
+void setCommandRequiresOpenFile(CraneCommandEntry *entry,
+                                bool requiresOpenFile) {
+  entry->requiresOpenFile = requiresOpenFile;
+}
+
 CraneCommandArgument *createCommandArgument(char *name,
-                                            CraneCommandArgumentType type) {
+                                            CraneCommandArgumentType type, bool isOptional) {
   CraneCommandArgument *argument = calloc(1, sizeof(CraneCommandArgument));
 
   argument->name = strdup(name);
   argument->type = type;
+  argument->isOptional = isOptional;
 
   return argument;
 }
@@ -43,7 +57,7 @@ void addCommandArgument(CraneCommandEntry *entry,
     entry->argumentCount = 1;
     entry->arguments = calloc(1, sizeof(CraneCommandArgument *));
   } else {
-    entry->argumentCount++;
+    if (!argument->isOptional) entry->argumentCount++;
     entry->arguments =
         realloc(entry->arguments,
                 sizeof(CraneCommandArgument *) * entry->argumentCount);
@@ -83,10 +97,39 @@ CraneCommandEntry *findCommand(CraneCommandMap *map, char *name) {
   return NULL;
 }
 
+int _findCommandIndex(CraneCommandMap *map, char *name) {
+  int commandHash = Crane_MapHash(name, map->size);
+
+  int i = 0;
+  while (true) {
+    if ((commandHash + i) >= map->size)
+      break;
+
+    CraneCommandEntry *entry = map->commands[commandHash + i];
+
+    if (entry != NULL) {
+      if (strcmp(entry->name, name) == 0) {
+        return commandHash + i;
+      }
+    }
+    i++;
+  }
+
+  return 0;
+}
+
 bool insertCommand(CraneCommandMap *map, CraneCommandEntry *command) {
   // Command already exists, do not insert
-  if (findCommand(map, command->name) != NULL)
+  if (findCommand(map, command->name) != NULL && !command->shouldOverride)
     return false;
+  else if (findCommand(map, command->name) != NULL && command->shouldOverride) {
+    int index = _findCommandIndex(map, command->name);
+
+    command->overridenEntry = map->commands[index];
+    map->commands[index] = command;
+    
+    return true;
+  }
 
   if (map->size == map->count) {
     map->size *= 2;
@@ -99,8 +142,22 @@ bool insertCommand(CraneCommandMap *map, CraneCommandEntry *command) {
     commandHash = (commandHash + 1) % map->size;
   }
   map->commands[commandHash] = command;
+  map->count++;
 
   return true;
+}
+
+CraneCommandEntry **aggregateCommands(CraneCommandMap *map) {
+  int entryIndex = 0;
+  CraneCommandEntry **entries = calloc(map->count, sizeof(CraneCommandEntry *));
+
+  for (int i = 0; i < map->size; i++) {
+    if (map->commands[i] != NULL) {
+      entries[entryIndex++] = map->commands[i];
+    }
+  }
+
+  return entries;
 }
 
 void deleteCommandMap(CraneCommandMap *map) {

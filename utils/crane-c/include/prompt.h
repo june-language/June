@@ -20,13 +20,22 @@
 
 typedef struct _CraneContext CraneContext;
 
+typedef struct _CraneString {
+  char *buffer;
+  size_t length;
+} CraneString;
+
+CraneString *newString();
+void appendChar(CraneString *string, char c);
+char *asCString(CraneString *string);
+
 typedef struct _CraneCommand {
   char *name;
   char **arguments;
   int argumentCount;
 } CraneCommand;
 
-CraneCommand *parseCommand(const char *buffer);
+CraneCommand *parseCommand(char *buffer);
 CraneCommand *inputCommand(CraneContext *context);
 
 #endif

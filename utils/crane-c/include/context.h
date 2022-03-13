@@ -8,10 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct _CraneOpenFile {
+  char *filePath;
+  char *alias;
+  FILE *handle;
+} CraneOpenFile;
+
 typedef struct _CraneContext {
   int lastCommandResult;
-  char *openedFilePath;
-  FILE *openedFile;
+  CraneOpenFile *openedFile;
+  CraneMap *fileMap;
   CraneMap *dynHandleMap;
   CraneCommandMap *commandMap;
 } CraneContext;

@@ -88,11 +88,12 @@ void deleteEntry(CraneMap *map, char *name) {
 }
 
 CraneMapEntry **aggregateMapItems(CraneMap *map) {
+  int entryIndex = 0;
   CraneMapEntry **entries = calloc(map->count, sizeof(CraneMapEntry *));
 
   for (int i = 0; i < map->size; i++) {
     if (map->entries[i] != NULL) {
-      entries[i % map->count] = map->entries[i];
+      entries[entryIndex++] = map->entries[i];
     }
   }
 
