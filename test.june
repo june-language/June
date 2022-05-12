@@ -1,0 +1,27 @@
+package Examples;
+
+import Standard.IO;
+//     ^^^^^^^^^^^ translates to: '$JUNE_HOME/lib/standard/io' 
+//                 which is '$JUNE_HOME/lib/standard/io/index.june' by default
+import Examples.lib as Lib;
+//     |            ^^^^^^ renames 'lib' to 'Lib'
+//     ^^^^^^^^^^^^ translates to: './examples/lib.june'
+
+// import Examples.Others.lib
+//                 |      ^^^ resolves to './examples/others/lib.june'
+//        |        ^^^^^^ resolves to './examples/others'
+//        ^^^^^^^^ resolves to './examples'
+
+let string = "Hello, world!";
+// types aren't as solid, they're checked during runtime (for now)
+
+IO.prints(string); // "Hello, world!"
+
+string.replace(',', "...");
+//             |    ^^^^^ string type 
+//             ^^^ char type
+
+Lib.removeLast(string, 1);
+//                     ^ int type
+
+IO.prints(string); // "Hello... world"

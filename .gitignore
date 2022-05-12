@@ -30,6 +30,7 @@ include/JuneConfig.hpp
 ##############
 tmp*
 /*.june
+!test.june
 *.zip
 
 # Packages #

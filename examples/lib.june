@@ -1,0 +1,21 @@
+package Examples.lib;
+
+/// Checks for safety in string length, then creates
+/// a substring to remove the last `n` characters
+public fn removeLast(str, count) {
+  if !isStringSafe(str, count) {
+    return str;
+  } else {
+    str.substr(0, str.len() - count);
+  }
+}
+
+/// Checks for string safety, returns `true` if the
+/// string is safe for modification, `false` otherwise
+private fn isStringSafe(str, count) {
+  if str.is_empty() || str.len() < count {
+    false
+  } else {
+    true
+  }
+}
