@@ -1,0 +1,10 @@
+[package]
+name = "june_common"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+process_path = "0.1.3"
+regex = "1.5.5"
+walkdir = "2.3.2"
+pathdiff = "0.2.1"

@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "vm/june",
+  "vm/june_common",
+  "vm/june_vm"
+]
+
