@@ -1,6 +1,16 @@
 use crate::vars::Var;
+use hashbrown::HashMap;
+use libloading::Library;
 
-pub struct State {
+/// Native init and deinit functions
+pub type NativeInit = fn(&mut State, usize, usize) -> bool;
+pub type NativeDeinit = fn() -> ();
+
+/// These maps should have the same keys mapped to the same values
+type DylibMap = HashMap<String, Library>;
+type DeinitMap = HashMap<String, NativeDeinit>;
+
+pub struct State<'a> {
 
 
   pub exit_called: bool,
@@ -13,12 +23,11 @@ pub struct State {
   // src_stack: SrcStack,
   // stack: VMStack,
 
-  pub tru: Var,
-  pub fls: Var,
-  pub nil: Var,
+  pub tru: Var<'a>, // Value::Boolean(true)
+  pub fls: Var<'a>, // Value::Boolean(false)
+  pub nil: Var<'a>, // Value::Nil
 
-  // dylib: DylibMap,
-  // src_args: Vec<String>,
-
-
+  pub dylib: DylibMap,
+  pub deinit: DeinitMap,
+  pub src_args: Var<'a>, // Value::Vector  
 }

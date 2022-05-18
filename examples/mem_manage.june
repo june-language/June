@@ -1,0 +1,28 @@
+import Standard.IO, Standard.LowLevel.Memory;
+
+let x = Memory.unmanaged("string");
+
+IO.prints(x); // prints "string"
+
+Memory.drop(x); // x is nil now
+
+IO.prints(x); // prints nil
+
+Memory.drop(x); // x was already dropped, this does nothing
+
+Memory.debug(true); // begin debug printing for memory management
+
+fn bad_usage() {
+  let x = Memory.unmanaged("string2");
+
+  IO.prints(x); // prints "string2"
+
+  // if we don't drop this memory, it'll print a warning
+}
+
+bad_usage();
+// ^ this causes a warning to be printed about
+//   the undropped memory. future behaviour
+//   *may* drop the memory automatically
+
+Memory.debug(false); // turns off debug printing

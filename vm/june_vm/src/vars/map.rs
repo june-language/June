@@ -15,12 +15,15 @@ impl VarMap {
   }
 }
 
+impl Default for VarMap {
+  fn default() -> Self {
+    Self::new()
+  }
+}
+
 impl Native for VarMap {
   fn is_feature_supported(&self, feature: NativeFeature) -> bool {
-    match feature {
-      NativeFeature::AttrBased => true,
-      _ => false,
-    }
+    matches!(feature, NativeFeature::AttrBased)
   }
 
   fn attr_exists(&self, name: &str) -> bool {
